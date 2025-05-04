@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Criador de Anúncio</title>
+</head>
+<body>
+  <div class="container" id="form-container">
+    <h2>🛍️ Criador de Anúncio</h2>
+    <input type="text" id="titulo" placeholder="Título do produto">
+    <textarea id="descricao" placeholder="Descrição do produto"></textarea>
+    
+    <!-- Campo de upload de imagem -->
+    <input type="file" id="imagemUpload" accept="image/*">
+    
+    <input type="text" id="whatsapp" placeholder="Número do WhatsApp (somente números)">
+    
+    <!-- Botão de Pagamento -->
+    <button onclick="iniciarPagamento()">Pagamento</button>
+  </div>
+
+  <!-- Área de pagamento -->
+  <div class="container" id="pagamento-container" style="display:none;">
+    <h2>💳 Pagamento via PIX</h2>
+    <P><SPAN>Aviso: esse site não tem suporte para publicar ou cria automação em outros sites e colocar no site e  não fazemos reembolso esteja ciente de sua compra o site só téra o link</SPAN></P>
+    <p>Valor: 19,99</p>
+    <p> Faça o pagamento e depois clique no botão abaixo:</p>
+    <script src="https://www.mercadopago.com.br/integrations/v1/web-payment-checkout.js"
+data-preference-id="1601318997-9006aaa3-fc4f-4682-bafa-e1ca2015612e" data-source="button">
+</script>
+    <button onclick="confirmarPagamento()">Já Paguei</button>
+  </div>
+
+  <!-- Tela de carregamento -->
+  <div class="container" id="confirmacao-container" style="display:none;">
+    <h2>🔒 Confirmando pagamento...</h2>
+    <p>Aguarde alguns segundos.</p>
+  </div>
+
+  <!-- Anúncio final -->
+  <div class="container" id="anuncio-container" style="display:none;">
+    <h2>📢 Anúncio Gerado</h2>
+    <div class="preview" id="preview"></div>
+  </div>
+
+  <script>
+    let imagemBase64 = '';
+
+    document.getElementById('imagemUpload').addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        imagemBase64 = e.target.result;
+      };
+      if (file) {
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function iniciarPagamento() {
+      const titulo = document.getElementById('titulo').value;
+      const descricao = document.getElementById('descricao').value;
+      const whatsapp = document.getElementById('whatsapp').value;
+
+      if (!titulo || !descricao || !whatsapp) {
+        alert('Preencha todos os campos antes de continuar.');
+        return;
+      }
+
+      // Salvar temporariamente
+      localStorage.setItem('titulo', titulo);
+      localStorage.setItem('descricao', descricao);
+      localStorage.setItem('whatsapp', whatsapp);
+      localStorage.setItem('imagem', imagemBase64);
+
+      document.getElementById('form-container').style.display = 'none';
+      document.getElementById('pagamento-container').style.display = 'block';
+    }
+
+    function confirmarPagamento() {
+      document.getElementById('pagamento-container').style.display = 'none';
+      document.getElementById('confirmacao-container').style.display = 'block';
+
+      setTimeout(() => {
+        liberarAnuncio();
+      }, 5000); // 5 segundos simulando confirmação
+    }
+
+    function liberarAnuncio() {
+      const titulo = localStorage.getItem('titulo');
+      const descricao = localStorage.getItem('descricao');
+      const whatsapp = localStorage.getItem('whatsapp');
+      const imagem = localStorage.getItem('imagem');
+
+      const linkWhatsApp = `https://wa.me/${whatsapp}?text=${encodeURIComponent(titulo + '\n' + descricao)}`;
+
+      let html = `<h3>${titulo}</h3>`;
+      if (imagem) html += `<img src="${imagem}" alt="Imagem" style="width:100%; max-height:300px; object-fit:cover; margin-top:10px;">`;
+      html += `<p>${descricao}</p>`;
+      html += `<a href="${linkWhatsApp}" target="_blank">📲 Falar no WhatsApp</a>`;
+      html += `<br><br><button onclick="copiarTexto()">📋 Copiar Anúncio</button>`;
+
+      document.getElementById('confirmacao-container').style.display = 'none';
+      document.getElementById('anuncio-container').style.display = 'block';
+      document.getElementById('preview').innerHTML = html;
+    }
+
+    function copiarTexto() {
+      const el = document.createElement('textarea');
+      el.value = document.getElementById('preview').innerText;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      alert('Anúncio copiado para a área de transferência!');
+    }
+  </script>
+</body>
+</html>
